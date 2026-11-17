@@ -46,6 +46,28 @@ Map this to your runtime's tool-call syntax - the left side is the MCP tool name
 
 Always call `accounts` once at the start of any non-trivial task to discover available accounts, calendars, teams, shared inboxes, and access levels. Call `folders` before passing folder identifiers to `emails` or `search`.
 
+## Interactive views (spark-ui)
+
+The plugin also runs `spark-ui`, an [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview) server that renders interactive views inside hosts that support them (Claude Desktop, claude.ai). Fetch data with the `spark` tools first, then hand the rows to a view instead of writing a long markdown table:
+
+| Tool | Use after | What the user can do in the view |
+|------|-----------|----------------------------------|
+| `show_inbox` | `emails` / `search` | Filter by category, open threads, archive / done / pin / snooze (with Undo), batch-select |
+| `show_thread` | - (takes `message_id`) | Read the conversation, "Reply with Claude", "Summarize", open attachments, done / archive |
+| `show_agenda` | `events` | See the day around a "now" line, join calls, ask Claude to prep a meeting |
+| `review_draft` | `draft` (pass its `ID` as `draft.id`) | Edit To / Cc / Subject / body, save, and **send only after an explicit two-step confirm** |
+
+```
+emails { "filter": "is:unread category:priority" }
+show_inbox { "title": "Priority - unread", "emails": [{ "id": "1114", "from": "Alice <alice@co.com>", "subject": "Q3 budget", "date": "09:12", "snippet": "...", "unread": true, "category": "priority" }] }
+```
+
+- Map every row you show: `id` must be the Spark message ID so the view's buttons act on the right email. Put your own one-line summary in `snippet` when it helps.
+- Actions taken in a view go through the same `spark` tools and access levels; a refused action is shown to the user in the view.
+- The view reports what the user did back to you as context (e.g. "User archived ..."). Read it before acting again so you don't repeat or undo their choices.
+- Prefer `review_draft` over sending yourself: compose with `draft`, then show it. The user presses Send.
+- Hosts without MCP Apps support get a plain-text fallback from the same tools, so calling them is always safe.
+
 ## Tools
 
 | Tool | Access | Description |

@@ -24,9 +24,23 @@ What Claude can do:
 - Spark CLI enabled: in Spark, go to **Settings → AI Agents → Spark CLI Setup** and follow the prompts.
 - Per-account access levels - `read-only`, `triage` (everything in read-only plus drafts, comments, and email/contact actions), or `send` (everything in triage plus sending mail and calendar invitations) - configured in **Settings → AI Agents → Access**. Recipes and personas declare the level they need; running one against an account with insufficient access returns an error explaining how to upgrade.
 
+## Interactive views (MCP Apps)
+
+In hosts that support [MCP Apps](https://modelcontextprotocol.io/extensions/apps/overview), Claude can show your Spark data as interactive views instead of text:
+
+- **Inbox** (`show_inbox`) - category filters, archive / done / pin / snooze with Undo, batch select, keyboard shortcuts (`e`, `d`).
+- **Thread** (`show_thread`) - the full conversation, attachments, "Reply with Claude" and "Summarize".
+- **Agenda** (`show_agenda`) - today around a live "now" line, Join buttons, "Prep" a meeting with Claude.
+- **Draft review** (`review_draft`) - edit and save a draft; it is only sent when you press Send and confirm.
+
+Every button calls the same `spark` tools, so your access levels still apply, and Claude is told what you did in the view. Hosts without MCP Apps get a text fallback.
+
 ## What the plugin runs
 
-The plugin starts `spark mcp`, the MCP server built into the Spark CLI that Spark CLI Setup installs. Each tool call runs the matching `spark` command against your running Spark Desktop. The plugin ships no code of its own. Tool results are returned to Claude as part of your conversation; the plugin itself sends nothing anywhere else.
+The plugin starts two local MCP servers:
+
+- `spark mcp`, the MCP server built into the Spark CLI that Spark CLI Setup installs. Each tool call runs the matching `spark` command against your running Spark Desktop.
+- `spark-ui` (`ui/dist/index.js`, needs Node.js 20+), which serves the interactive views and forwards every read and action to `spark mcp`. It makes no network requests of its own. Source and tests live in [`ui/`](ui/README.md). Tool results are returned to Claude as part of your conversation; the plugin itself sends nothing anywhere else.
 
 ## Privacy Policy
 

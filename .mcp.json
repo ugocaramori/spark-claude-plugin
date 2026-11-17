@@ -3,6 +3,10 @@
         "spark": {
             "command": "spark",
             "args": ["mcp"]
+        },
+        "spark-ui": {
+            "command": "node",
+            "args": ["${CLAUDE_PLUGIN_ROOT}/ui/dist/index.js"]
         }
     }
 }
